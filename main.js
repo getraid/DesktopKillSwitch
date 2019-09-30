@@ -15,8 +15,8 @@ var hueUsername = "";
 var hueLightId = "";
 
 //in seconds
-var timeBetweenRetryPing = 1;
-var timeBetweenLastPing = 1;
+var timeBetweenRetryPing = 60;
+var timeBetweenLastPing = 120;
 
 // retry counter. Also change at line 59. Use it to specify how often it should be checked
 var retries = 1;
