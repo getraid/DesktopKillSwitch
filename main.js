@@ -3,46 +3,87 @@ var ping = require("ping");
 
 const express = require("express");
 var server = express();
-let callback = null;
+
+//-----settings-----
+
+//enter all networkadapters that can be pinged to reach your pc
 let hosts = ["192.168.178.127", "192.168.178.29"];
-var itemsProcessed = 0;
-var x = false;
+
+//all hue-settings. See README.md
+var hueIp = "";
+var hueUsername = "";
+var hueLightId = "";
+
+//in seconds
+var timeBetweenRetryPing = 1;
+var timeBetweenLastPing = 1;
+
+// retry counter. Also change at line 59. Use it to specify how often it should be checked
 var retries = 1;
 
+//-----variables-----
+var hostsCombined = false;
+var itemsProcessed = 0;
+var retriestmp = retries;
+
+var hueUrl =
+  "http://" +
+  hueIp +
+  "/api/" +
+  hueUsername +
+  "/lights/" +
+  hueLightId +
+  "/state";
+
 function callHue() {
-  // Method to call hue
+  axios
+    .put(hueUrl, {
+      on: true,
+      bri: 255
+    })
+    .then(function(response) {
+      // (  console.log(response);)
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
 }
 
 function reset() {
   itemsProcessed = 0;
-  x = false;
+  hostsCombined = false;
 }
 
-function settysetty(vally) {
-  console.log("setty", itemsProcessed, " ", hosts.length);
-  x = x || vally;
+function combineHosts(isAlive) {
+  hostsCombined = isAlive || hostsCombined;
+
   if (itemsProcessed === hosts.length - 1) {
-    console.log("processy");
     setTimeout(() => {
-      if (retries > 0) {
-        retries--;
+      if (retriestmp > 0) {
+        retriestmp--;
         reset();
         pingAll();
       } else {
-        retries = 1;
-        reset();
-        if (!x) {
+        if (!hostsCombined) {
           setTimeout(() => {
             //Ping Bridge;
-            console.log("tot");
+            console.log(
+              "PC can't be reached. Hue will send API-Request to:",
+              hueUrl
+            );
             callHue();
-          }, 1 * 60 * 1000);
+          }, timeBetweenLastPing * 1000);
         } else {
-          console.log("lebt");
+          //abort
+          console.log(
+            "PC is still reachable, Maybe unsaved work? Will not execute API-Request"
+          );
         }
+        retriestmp = retries;
+        reset();
       }
-    }, 5 * 60 * 1000);
-    console.log(x);
+    }, timeBetweenRetryPing * 1000);
+    console.log(hostsCombined);
   }
   itemsProcessed++;
 }
@@ -50,59 +91,18 @@ function settysetty(vally) {
 function pingAll() {
   hosts.forEach(function(host, index) {
     ping.sys.probe(host, function(isAlive) {
-      // var msg = isAlive
-      //   ? "host " + host + " is alive"
-      //   : "host " + host + " is dead";
-      console.log(isAlive);
-      settysetty(isAlive);
+      var msg = isAlive
+        ? "host " + host + " is alive"
+        : "host " + host + " is dead";
+      console.log(msg);
+      combineHosts(isAlive);
     });
   });
 }
 
 server.post("/shutdown", (req, res) => {
   pingAll();
-
   res.sendStatus(200);
-
-  // pingplong.then(function(res) {
-  //   console.log(res);
-  // });
-  // var counter = hosts.length;
-  // hosts.forEach(function(host, index) {
-  //   console.log(host + " started ...");
-  //   setTimeout(function() {
-  //     console.log(index + ": " + host);
-  //     pingplong(host);
-
-  //     counter -= 1;
-  //     if (counter === 0) {
-  //       console.log("ich verstehe");
-  //     }
-  //     // call your callback here
-  //   }, 10);
-  // });
-
-  // function pingplong(host) {
-  //   ping.sys.probe(host, function(isAlive) {
-  //     var msg = isAlive
-  //       ? "host " + host + " is alive"
-  //       : "host " + host + " is dead";
-  //     console.log(msg);
-  //   });
-  // }
-
-  // hosts.forEach(function(host, index, array) {
-  //   itemsProcessed++;
-
-  //   console.log("items", itemsProcessed, "arr", array.length);
-
-  //   ping.promise.probe(host).then(function(res) {
-  //     console.log(res.alive);
-  //   });
-  //    if (itemsProcessed === array.length) {
-  //     console.log("timos mutter stinkt");
-  //   }
-  // });
 });
 
 server.get("/desktopkillswitch", (req, res) => {
