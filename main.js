@@ -16,10 +16,13 @@ var hueLightId = "";
 
 //in seconds
 var timeBetweenRetryPing = 60;
-var timeBetweenLastPing = 120;
 
-// retry counter. Also change at line 59. Use it to specify how often it should be checked
-var retries = 1;
+// ---- Dunno if changing the settings below works, since the upper settings serve my purposes -----
+var timeBetweenLastPing = 1;
+
+// retry counter. Use it to specify how often it should be checked.
+// After all retries, retries will also be called once more. Only last call is used to determine if PC is still reachable
+var retries = 3;
 
 //-----variables-----
 var hostsCombined = false;
@@ -38,8 +41,7 @@ var hueUrl =
 function callHue() {
   axios
     .put(hueUrl, {
-      on: true,
-      bri: 255
+      on: false
     })
     .then(function(response) {
       // (  console.log(response);)
@@ -65,14 +67,12 @@ function combineHosts(isAlive) {
         pingAll();
       } else {
         if (!hostsCombined) {
-          setTimeout(() => {
-            //Ping Bridge;
-            console.log(
-              "PC can't be reached. Hue will send API-Request to:",
-              hueUrl
-            );
-            callHue();
-          }, timeBetweenLastPing * 1000);
+          //Ping Bridge;
+          console.log(
+            "PC can't be reached. Hue will send API-Request to:",
+            hueUrl
+          );
+          callHue();
         } else {
           //abort
           console.log(
