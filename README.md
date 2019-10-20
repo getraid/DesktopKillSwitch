@@ -1,5 +1,5 @@
 # DesktopKillSwitch
-An App that should be hosted on a Raspberry Pi to kill the electrictiy after shutdown of your PC
+An App that should be hosted on a Raspberry Pi to kill the electricity after shutdown of your PC
 
 # Requirements  
 * [DesktopKillSwitch-Client](https://github.com/getraid/DesktopKillSwitch-client)
