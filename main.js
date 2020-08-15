@@ -4,13 +4,14 @@ var ping = require("ping");
 const express = require("express");
 var server = express();
 
+
 //-----settings-----
 
 //enter all networkadapters that can be pinged to reach your pc
-let hosts = ["192.168.178.127", "192.168.178.29"];
+let hosts = ["192.168.X.X"];
 
 //all hue-settings. See README.md
-var hueIp = "";
+var hueIp = "192.168.X.X";
 var hueUsername = "";
 var hueLightId = "";
 
@@ -28,6 +29,7 @@ var retries = 3;
 var hostsCombined = false;
 var itemsProcessed = 0;
 var retriestmp = retries;
+this.pause = false;
 
 var hueUrl =
   "http://" +
@@ -38,25 +40,25 @@ var hueUrl =
   hueLightId +
   "/state";
 
-function callHue() {
+function callHue () {
   axios
     .put(hueUrl, {
       on: false
     })
-    .then(function(response) {
+    .then(function (response) {
       // (  console.log(response);)
     })
-    .catch(function(error) {
+    .catch(function (error) {
       console.log(error);
     });
 }
 
-function reset() {
+function reset () {
   itemsProcessed = 0;
   hostsCombined = false;
 }
 
-function combineHosts(isAlive) {
+function combineHosts (isAlive) {
   hostsCombined = isAlive || hostsCombined;
 
   if (itemsProcessed === hosts.length - 1) {
@@ -88,9 +90,9 @@ function combineHosts(isAlive) {
   itemsProcessed++;
 }
 
-function pingAll() {
-  hosts.forEach(function(host, index) {
-    ping.sys.probe(host, function(isAlive) {
+function pingAll () {
+  hosts.forEach(function (host, index) {
+    ping.sys.probe(host, function (isAlive) {
       var msg = isAlive
         ? "host " + host + " is alive"
         : "host " + host + " is dead";
@@ -100,8 +102,12 @@ function pingAll() {
   });
 }
 
+server.use(express.static('fonts'));
+
 server.post("/shutdown", (req, res) => {
-  pingAll();
+  if (!pause) {
+    pingAll();
+  }
   res.sendStatus(200);
 });
 
@@ -109,10 +115,26 @@ server.get("/desktopkillswitch", (req, res) => {
   res.sendStatus(200);
 });
 
+
+server.post("/stop", (req, res) => {
+  process.exit();
+});
+
+
+server.get("/pause", (req, res) => {
+  this.pause = !Boolean(this.pause);
+  res.send('' + this.pause);
+});
+
+server.get("/getpausestatus", (req, res) => {
+  res.send('' + this.pause);
+});
+
 server.get("/", (req, res) => {
   //index to trigger abort page
   res.sendFile(__dirname + "/index.html");
 });
+
 
 const port = 5123;
 
