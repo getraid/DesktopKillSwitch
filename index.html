@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
     <title>DesktopKillSwitch</title>
 </head>
 
@@ -177,6 +178,8 @@
 
 
     <script>
+        //Don't ask me why I used fetch here, even though I also had axios installed...
+
         // Sends GET request to /pause, then sends request to / and swaps current view to new one
         function pauseGET() {
             fetch('/pause').then(() => {
