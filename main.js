@@ -105,7 +105,7 @@ function pingAll () {
 server.use(express.static('fonts'));
 
 server.post("/shutdown", (req, res) => {
-  if (allowedToRun) {
+  if (this.allowedToRun) {
     pingAll();
   }
   res.sendStatus(200);
