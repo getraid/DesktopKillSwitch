@@ -29,7 +29,7 @@ var retries = 3;
 var hostsCombined = false;
 var itemsProcessed = 0;
 var retriestmp = retries;
-this.pause = false;
+this.allowedToRun = true;
 
 var hueUrl =
   "http://" +
@@ -105,7 +105,7 @@ function pingAll () {
 server.use(express.static('fonts'));
 
 server.post("/shutdown", (req, res) => {
-  if (!pause) {
+  if (allowedToRun) {
     pingAll();
   }
   res.sendStatus(200);
@@ -122,12 +122,12 @@ server.post("/stop", (req, res) => {
 
 
 server.get("/pause", (req, res) => {
-  this.pause = !Boolean(this.pause);
-  res.send('' + this.pause);
+  this.allowedToRun = !Boolean(this.allowedToRun);
+  res.send('' + this.allowedToRun);
 });
 
 server.get("/getpausestatus", (req, res) => {
-  res.send('' + this.pause);
+  res.send('' + this.allowedToRun);
 });
 
 server.get("/", (req, res) => {
